@@ -23,14 +23,15 @@ h2 {
   width: 85%;
 }
 
-#side-notes {
-  width: 30%;
+.side-notes {
+  max-width: 270px;
   min-width: 150px;
+
   display: flex;
   flex-direction: column;
 }
 
-#main-notes {  
+#main-note {  
   width: 70%;
 }
 

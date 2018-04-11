@@ -1,13 +1,19 @@
 class NoteApp extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {selectedNote: null}
+  }
+  
   noteSelected(id){
+    this.setState({selectedNote: id})
     console.log('Note selected (in app):' + id);
   }
   render(){
-    return [
-      React.createElement('div', {ID: 'side-notes'}, 
-        React.createElement(NoteList, {onSelectNote: this.noteSelected.bind(this)}, null)),
-      React.createElement('div', {id:'main-notes'}, null)
-    ]
+    var els = [React.createElement(NoteList, {onSelectNote: this.noteSelected.bind(this)}, null)];
+    if(this.state.selectedNote){
+      els.push(React.createElement(Note, {key: this.state.selectedNote, noteId: this.state.selectedNote}, null))
+    }
+    return els;
   }
 }
 
@@ -29,16 +35,16 @@ class NoteList extends React.Component{
   noteClicked(id){
     console.log('Note clicked: ' + id);
     this.props.onSelectNote(id);
+
   }
   render(){
     var self = this;
     var children = this.state.notes.map(function(note){
-      console.log(note)
       note.onClick = self.noteClicked.bind(self)
       return React.createElement(NoteSummary, note, null)
     });
     return [
-      React.createElement('div', {className: 'list'}, children)
+      React.createElement('div', {className: 'side-notes'}, children)
     ]
   }
 }
@@ -51,50 +57,21 @@ class NoteSummary extends React.Component{
   clickHandler(){
     this.props.onClick(this.props.id);
   } 
-    /*
-    this.setState(function(prevState, props){
-      //className: 'hidden'
-      },  this.sendNoteDetail()
-   });
-   */
-  
-  
-  // clickHandler(){
-  //   this.setState((prevState, props) => ({
-  //     ?????
-  //     },  ReactDOM.render(
+  // sendNoteDetail(){
+  //   //var self = this
+  //   var xhr = new XMLHttpRequest();
+  //   xhr.open("GET", "/notes/" + this.state.id);
+  //   xhr.onreadystatechange = function(){
+  //     if (xhr.readyState === 4){
+  //       document.getElementById('main-notes').innerHTML = '';
+  //       ReactDOM.render(
   //         React.createElement(Note, this.state, null),
-  //         document.getElementById('main-notes'))
-  //  ));
+  //         document.getElementById('main-notes'));
+  //       console.log(this.state, 'line 68')
+  //     }
+  //   }.bind(this)
+  //   xhr.send();
   // }
-
-sendNoteDetail(){
-    //var self = this
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/notes/" + this.state.id);
-    xhr.onreadystatechange = function(){
-      if (xhr.readyState === 4){
-        document.getElementById('main-notes').innerHTML = '';
-        ReactDOM.render(
-          React.createElement(Note, this.state, null),
-          document.getElementById('main-notes'));
-        console.log(this.state, 'line 68')
-      }
-    }.bind(this)
-    xhr.send();
-  }
-  
-  noteDetail(){
-    //console.log(this.state);
-    var showNote = React.createElement(Note, this.state, null)
-    return [
-      console.log(showNote, 'line 76'),
-      React.createElement('div', showNote, null),
-      document.getElementById('main-notes')
-      //React.createElement('div', this.state, null)
-    ]
-  }
-
   render(){
     return React.createElement('div', {className: 'summary', key: this.state.id, onClick: this.clickHandler.bind(this)}, [
       React.createElement('h2', {className: 'view-note'}, this.state.title),
@@ -104,22 +81,36 @@ sendNoteDetail(){
   }
 }
 
+
 class Note extends React.Component{
   constructor(props){
     super(props);
     this.state = props;
   }
+
+  componentDidMount(){
+    //var self = this
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/notes/" + this.props.noteId + ".json");
+    xhr.onreadystatechange = function(){
+      if (xhr.readyState === 4){
+        this.setState(JSON.parse(xhr.response));
+      }
+    }.bind(this)
+    xhr.send();
+  }
+
   render(){
     //document.getElementById('main-notes').innerHTML = '';
     console.log('made it to note render');
-    console.log(this.state, 'line 94');
-    return React.createElement('div', {className: 'note-view'}, [
+    return React.createElement('div', {id: 'main-note', className: 'note-view'}, [
       React.createElement('h3', {key: this.state.id}, this.state.title),
       React.createElement('p', {key: this.state.id}, this.state.content)
     ])
   }
 
  }
+
 
 document.addEventListener('DOMContentLoaded', function(){
 ReactDOM.render(
